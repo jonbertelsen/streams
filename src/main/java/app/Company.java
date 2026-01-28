@@ -1,7 +1,8 @@
 package app;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.time.Month;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Company {
@@ -17,9 +18,9 @@ public class Company {
                 new Employee("Jonas Pedersen",  LocalDate.of(2001, 9, 30), "Support",     28000),
                 new Employee("Lene Kristensen", LocalDate.of(1968, 1, 5),  "Ledelse",     65000),
                 new Employee("Mikkel Hansen",   LocalDate.of(1989, 6, 18), "IT",          47000),
-                new Employee("Fatima Ali",      LocalDate.of(1995, 12, 8), "Økonomi",     42000),
+                new Employee("Fatima Ali",      LocalDate.of(1995, 2, 8), "Økonomi",     42000),
                 new Employee("Peter Sørensen",  LocalDate.of(1983, 3, 25), "Produktion",  36000),
-                new Employee("Emma Jensen",     LocalDate.of(2003, 5, 2),  "Student",     22000)
+                new Employee("Emma Jensen",     LocalDate.of(2003, 5, 2),  "Support",     22000)
         );
 
         // Udskiv alle medarbejdere
@@ -35,7 +36,67 @@ public class Company {
 
         // Højeste månedsløn
 
+        Employee bigMoney = employees.stream()
+                .max(Comparator.comparingInt( e -> e.getSalary()))
+                .get();
 
+        System.out.println("Big money employee of the month: " + bigMoney.getName() + ": " + bigMoney.getSalary());
+
+        // Gennemsnitsløn pr. afdeling ->
+
+        Map<String, Double> avgSalaryByDept = employees.stream()
+                .collect(Collectors.groupingBy(e -> e.getDepartment() ,
+                         Collectors.averagingInt(e -> e.getSalary())));
+
+       // avgSalaryByDept.forEach( (dept, salary) -> System.out.println("Afdeling: " + dept + ", gennemsnitsløn: " + salary));
+        avgSalaryByDept.forEach( (dept, salary) ->
+                System.out.println( String.format("Afdeling: %s, gennemsnitsløn: %.2f kr.", dept, salary)));
+
+
+        // Antal ansatte pr. afdeling
+
+        Map<String, Long> countEmployeesByDept = employees.stream()
+                .collect(Collectors.groupingBy( e -> e.getDepartment(), Collectors.counting()));
+
+        countEmployeesByDept.forEach( (dept, count) -> System.out.println("Dept: " + dept + ", " + count + " medarbejdere"));
+
+        // De tre ældste medarbejdere
+
+        List<Employee> oldies = employees.stream()
+                .sorted(Comparator.comparingInt(Employee::getAge).reversed())
+                .limit(3)
+                .toList();
+
+        oldies.forEach(e -> System.out.println(e));
+
+        int limit = 40000;
+
+        List<Employee> highRollers = employees.stream()
+                .filter(e -> e.getSalary() > limit)
+                .toList();
+
+        System.out.println("**** Tjener over " + limit + " kr.");
+
+        highRollers.forEach(e -> System.out.println(e));
+
+        // Vi alle der er født i februar
+
+        System.out.println("**** Februar ansatte *******");
+
+        List<Employee> februarFolk = employees.stream()
+                .filter( e -> e.getBirthDate().getMonth() == Month.FEBRUARY)
+                .toList();
+        februarFolk.forEach( e -> System.out.println(e));
+
+        // Gruppér efter fødselsmåned -> vi skal bruge et MAP - count til at tælle
+
+        System.out.println("****** Antal medarbejdere per måned ********");
+
+        Map<Month, Long> countPerMonth = employees.stream()
+                .collect(Collectors.groupingBy(e -> e.getBirthDate().getMonth(), TreeMap::new,
+                        Collectors.counting()));
+
+        countPerMonth.forEach( (month, count) -> System.out.println("Month: " + month + ", antal: " + count));
 
     }
 }
